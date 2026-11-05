@@ -1,0 +1,45 @@
+name: Game day
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["responder/**", "ops/**", "scripts/game_day.py", "docker-compose.yml", ".github/workflows/game-day.yml"]
+  pull_request:
+    paths: ["responder/**", "ops/**", "scripts/game_day.py", "docker-compose.yml", ".github/workflows/game-day.yml"]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  game-day:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        fault: [contribution_write_failure, contribution_write_latency]
+    env:
+      # Incident issues are filed only on deliberate runs, not on every push.
+      GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.GITHUB_TOKEN || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the whole system
+        run: docker compose up --build --detach --wait --wait-timeout 300
+      - name: Break it and require the agent to fix it
+        run: python3 scripts/game_day.py ${{ matrix.fault }}
+      - name: Collect the agent's report
+        if: always()
+        run: |
+          mkdir -p game-day-report
+          docker compose cp responder:/tmp/incidents game-day-report/incidents || true
+          docker compose logs responder alertmanager > game-day-report/logs.txt
+      - name: Show the report
+        if: always()
+        run: cat game-day-report/incidents/*.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: game-day-${{ matrix.fault }}
+          path: game-day-report
