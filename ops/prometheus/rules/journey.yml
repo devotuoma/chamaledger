@@ -1,0 +1,42 @@
+groups:
+  - name: record-contribution-journey
+    rules:
+      - alert: ContributionsFailing
+        expr: |
+          sum(rate(chama_journey_requests_total{journey="record_contribution",outcome="error"}[2m]))
+            /
+          sum(rate(chama_journey_requests_total{journey="record_contribution"}[2m]))
+            > 0.05
+        for: 1m
+        labels:
+          severity: page
+          journey: record_contribution
+        annotations:
+          summary: "Treasurers cannot record contributions"
+          description: "{{ $value | humanizePercentage }} of contribution requests are failing, against an SLO allowing 1%. Payments may go unrecorded."
+          runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-failing.md"
+
+      - alert: ContributionsSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(chama_journey_duration_seconds_bucket{journey="record_contribution"}[2m]))
+          ) > 1
+        for: 1m
+        labels:
+          severity: page
+          journey: record_contribution
+        annotations:
+          summary: "Treasurers are waiting too long to record contributions"
+          description: "95% of contributions finish within {{ $value | humanizeDuration }}, against a 1 second objective. Slow saves lead to repeat submissions and abandoned entries."
+          runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-slow.md"
+
+      - alert: ContributionsUnavailable
+        expr: chama_probe_success == 0
+        for: 1m
+        labels:
+          severity: page
+          journey: record_contribution
+        annotations:
+          summary: "The contribution journey fails from the outside"
+          description: "A synthetic contribution has been failing for over a minute. This also covers a full outage, when the API cannot report its own errors."
+          runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-unavailable.md"

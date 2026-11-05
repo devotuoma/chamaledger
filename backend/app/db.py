@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -22,9 +22,21 @@ def normalize_url(url: str) -> str:
 def build_engine(url: str) -> Engine:
     url = normalize_url(url)
     if url.startswith("sqlite"):
-        return create_engine(
+        engine = create_engine(
             url, hide_parameters=True, connect_args={"check_same_thread": False}
         )
+
+        # The sqlite driver manages transactions in a way that breaks savepoints, which the
+        # journey probe depends on. These hooks hand control back to SQLAlchemy.
+        @event.listens_for(engine, "connect")
+        def _disable_driver_transactions(connection, _record):
+            connection.isolation_level = None
+
+        @event.listens_for(engine, "begin")
+        def _emit_begin(connection):
+            connection.exec_driver_sql("BEGIN")
+
+        return engine
     # hide_parameters keeps customer values out of error messages, and so out of telemetry.
     return create_engine(
         url,

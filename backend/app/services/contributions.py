@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import Conflict
+from app.faults import apply_contribution_faults
 from app.models import Contribution
 from app.schemas import ContributionCreate
 from app.services.members import get_member
@@ -33,6 +34,7 @@ def record_contribution(session: Session, data: ContributionCreate) -> tuple[Con
 
 
 def _record(session: Session, data: ContributionCreate) -> tuple[Contribution, bool]:
+    apply_contribution_faults(session)
     existing = _find_by_reference(session, data.reference)
     if existing is not None:
         return _replay(existing, data), False

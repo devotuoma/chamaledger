@@ -24,6 +24,8 @@ services:
       OTEL_ENABLED: "true"
       OTEL_ENDPOINT: http://otel-collector:4318
       SERVICE_VERSION: ${SERVICE_VERSION:-local}
+      OPS_TOKEN: ${OPS_TOKEN:-local-ops-token}
+      CHAOS_ENABLED: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -61,6 +63,20 @@ services:
       interval: 3s
       timeout: 3s
       retries: 30
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        printf %s "$$RESPONDER_TOKEN" > /tmp/responder-token
+        exec /bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml --storage.path=/tmp/alertmanager
+    environment:
+      RESPONDER_TOKEN: ${RESPONDER_TOKEN:-local-responder-token}
+    volumes:
+      - ./ops/alertmanager:/etc/alertmanager:ro
+    ports:
+      - "9093:9093"
 
   loki:
     image: grafana/loki:3.3.2
