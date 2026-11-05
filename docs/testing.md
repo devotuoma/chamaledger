@@ -13,6 +13,7 @@ make test
 | Integration | `backend/tests/integration` | API plus a real database, built by the real migrations |
 | Frontend | `frontend/tests` | Views, forms and error handling in jsdom |
 | Stack smoke | `scripts/smoke.py` | The running containers work end to end, through nginx |
+| Browser | `scripts/e2e_browser.py` | The journey works in real Chromium through nginx, with no page errors |
 | Game day | `.github/workflows/game-day.yml` | A real fault is alerted on and fixed by the agent |
 
 Integration tests use a temporary SQLite file by default. To run them against
