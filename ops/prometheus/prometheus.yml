@@ -6,3 +6,14 @@ scrape_configs:
   - job_name: otel-collector
     static_configs:
       - targets: ["otel-collector:8889"]
+  - job_name: responder
+    static_configs:
+      - targets: ["responder:8100"]
+
+rule_files:
+  - /etc/prometheus/rules/journey.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
