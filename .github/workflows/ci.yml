@@ -91,6 +91,21 @@ jobs:
         run: docker compose up --build --detach --wait --wait-timeout 240
       - name: Smoke test through the frontend
         run: python3 scripts/smoke.py http://localhost:8080 | tee smoke.txt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: The journey works in a real browser
+        run: |
+          python3 -m venv .e2e
+          .e2e/bin/pip install --quiet playwright==1.49.1
+          .e2e/bin/playwright install --with-deps chromium
+          .e2e/bin/python scripts/e2e_browser.py http://localhost:8080 e2e-screenshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: e2e-screenshots
+          if-no-files-found: ignore
       - name: One request can be followed across metrics, logs and traces
         run: python3 scripts/verify_telemetry.py
       - name: Grafana serves the provisioned dashboard
