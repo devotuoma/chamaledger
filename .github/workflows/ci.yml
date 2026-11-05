@@ -91,6 +91,9 @@ jobs:
         run: docker compose up --build --detach --wait --wait-timeout 240
       - name: Smoke test through the frontend
         run: python3 scripts/smoke.py http://localhost:8080 | tee smoke.txt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: The journey works in a real browser
         run: |
           python3 -m venv .e2e
