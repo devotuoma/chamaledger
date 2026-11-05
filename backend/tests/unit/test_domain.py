@@ -22,10 +22,10 @@ def test_ac_3_1_loan_cap_is_three_times_savings():
 
 @pytest.mark.parametrize(
     ("due_on", "expected"),
-    [(date(2026, 5, 31), False), (date(2026, 5, 30), False), (date(2026, 5, 29), True)],
+    [(date(2026, 6, 1), False), (date(2026, 5, 31), False), (date(2026, 5, 30), True)],
 )
 def test_ac_5_2_par_counts_strictly_more_than_30_days(due_on, expected):
-    assert (AS_OF - due_on).days in (30, 31, 32)
+    assert (AS_OF - due_on).days in (29, 30, 31)
     assert is_past_due_for_par(due_on, AS_OF) is expected
 
 
