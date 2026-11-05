@@ -6,6 +6,7 @@ usage: verify_telemetry.py [--base URL] [--prometheus URL] [--loki URL] [--tempo
 
 import argparse
 import json
+import random
 import sys
 import time
 import urllib.parse
@@ -52,7 +53,7 @@ def main():
     args = parser.parse_args()
 
     stamp = int(time.time())
-    phone = f"+2567{stamp % 100_000_000:08d}"
+    phone = f"+2566{random.randrange(10**8):08d}"
     _, member = post(f"{args.base}/api/members", {"full_name": SECRET_NAME, "phone": phone})
     headers, _ = post(
         f"{args.base}/api/contributions",
