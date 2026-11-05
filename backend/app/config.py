@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     environment: str = "local"
     service_version: str = "dev"
     cors_origins: str = ""
+    otel_enabled: bool = False
+    otel_endpoint: str = "http://otel-collector:4318"
+    log_level: str = "INFO"
 
 
 @lru_cache
