@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end check of the key journey through the public entry point.
 
-usage: smoke.py BASE_URL [--read-only] [--verify-persisted MEMBER_ID]
+usage: smoke.py BASE_URL [--read-only] [--verify-persisted MEMBER_ID] [--expect-version SHA]
 """
 
 import argparse
@@ -36,6 +36,22 @@ def wait_until_healthy(base, attempts=30):
     sys.exit(f"FAIL: {base} never became healthy")
 
 
+def wait_for_version(base, version, attempts=60):
+    """A deploy takes a while to go live, and the old version answers until it does."""
+    current = None
+    for _ in range(attempts):
+        try:
+            status, body = call(base, "GET", "/api/health")
+            current = body and body.get("version")
+            if status == 200 and current == version:
+                print(f"ok   version {version} is live")
+                return
+        except OSError:
+            pass
+        time.sleep(10)
+    sys.exit(f"FAIL: version {version} never went live (still seeing {current})")
+
+
 def check(condition, message):
     print(("ok   " if condition else "FAIL ") + message)
     if not condition:
@@ -47,10 +63,13 @@ def main():
     parser.add_argument("base")
     parser.add_argument("--read-only", action="store_true")
     parser.add_argument("--verify-persisted", type=int)
+    parser.add_argument("--expect-version")
     args = parser.parse_args()
     base = args.base.rstrip("/")
 
     wait_until_healthy(base)
+    if args.expect_version:
+        wait_for_version(base, args.expect_version)
     with urllib.request.urlopen(base + "/", timeout=15) as page:
         check(b"ChamaLedger" in page.read(), "frontend page is served")
     status, dashboard = call(base, "GET", "/api/dashboard")

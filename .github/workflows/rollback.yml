@@ -1,0 +1,26 @@
+name: Roll back
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to roll back
+        type: choice
+        options: [dev, production]
+        required: true
+      sha:
+        description: Full commit SHA of the release to restore
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  rollback:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: ${{ inputs.environment }}
+      sha: ${{ inputs.sha }}
+      smoke_args: --read-only
+    secrets: inherit

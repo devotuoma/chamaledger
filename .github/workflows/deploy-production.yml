@@ -1,0 +1,22 @@
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA already running on dev
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: production
+      sha: ${{ inputs.sha }}
+      # Production holds no test data, so its smoke test does not write.
+      smoke_args: --read-only
+    secrets: inherit
