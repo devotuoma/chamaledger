@@ -34,7 +34,9 @@ def build_engine(url: str) -> Engine:
 
         @event.listens_for(engine, "begin")
         def _emit_begin(connection):
-            connection.exec_driver_sql("BEGIN")
+            # IMMEDIATE takes the write lock up front. With a plain BEGIN, two connections
+            # can both read and then fail at once when they try to upgrade to a write.
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
 
         return engine
     # hide_parameters keeps customer values out of error messages, and so out of telemetry.
