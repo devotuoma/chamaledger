@@ -41,7 +41,12 @@ jobs:
               --label "org.opencontainers.image.revision=$SHA" \
               --label "org.opencontainers.image.source=$SOURCE"
             # "latest" exists only so the host's blueprint has an image to start from.
-            docker push --all-tags "$repository"
+            # The registry denies the first push of a brand-new package, then allows a retry.
+            for attempt in 1 2 3; do
+              docker push --all-tags "$repository" && break
+              [ "$attempt" = 3 ] && exit 1
+              sleep 15
+            done
           done
 
   deploy-dev:
