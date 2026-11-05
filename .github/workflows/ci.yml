@@ -64,6 +64,10 @@ jobs:
         run: docker compose up --build --detach --wait --wait-timeout 240
       - name: Smoke test through the frontend
         run: python3 scripts/smoke.py http://localhost:8080 | tee smoke.txt
+      - name: One request can be followed across metrics, logs and traces
+        run: python3 scripts/verify_telemetry.py
+      - name: Grafana serves the provisioned dashboard
+        run: curl -fsS http://localhost:3000/api/dashboards/uid/chamaledger-journey | grep -q "record a contribution"
       - name: Data survives a restart
         run: |
           member_id=$(grep -o 'member_id=[0-9]*' smoke.txt | cut -d= -f2)

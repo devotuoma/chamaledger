@@ -24,6 +24,10 @@ def savings_of(session: Session, member_id: int) -> int:
 
 
 def create_member(session: Session, data: MemberCreate) -> Member:
+    # Checked up front because Postgres quotes the duplicate value in its error text, and we
+    # do not want that text produced on a common path. The constraint still covers races.
+    if session.scalar(select(Member.id).where(Member.phone == data.phone)) is not None:
+        raise Conflict("A member with this phone number already exists")
     member = Member(full_name=data.full_name.strip(), phone=data.phone)
     session.add(member)
     try:

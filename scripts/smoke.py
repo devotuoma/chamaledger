@@ -6,6 +6,7 @@ usage: smoke.py BASE_URL [--read-only] [--verify-persisted MEMBER_ID]
 
 import argparse
 import json
+import random
 import sys
 import time
 import urllib.error
@@ -68,7 +69,7 @@ def main():
         base,
         "POST",
         "/api/members",
-        {"full_name": "Smoke Test", "phone": f"+2567{stamp % 100_000_000:08d}"},
+        {"full_name": "Smoke Test", "phone": f"+2567{random.randrange(10**8):08d}"},
     )
     check(status == 201, "member created")
 

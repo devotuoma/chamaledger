@@ -22,8 +22,18 @@ def normalize_url(url: str) -> str:
 def build_engine(url: str) -> Engine:
     url = normalize_url(url)
     if url.startswith("sqlite"):
-        return create_engine(url, connect_args={"check_same_thread": False})
-    return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5, pool_timeout=5)
+        return create_engine(
+            url, hide_parameters=True, connect_args={"check_same_thread": False}
+        )
+    # hide_parameters keeps customer values out of error messages, and so out of telemetry.
+    return create_engine(
+        url,
+        hide_parameters=True,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=5,
+        pool_timeout=5,
+    )
 
 
 engine = build_engine(get_settings().database_url)
