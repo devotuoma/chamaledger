@@ -67,3 +67,6 @@ td.money, th.money { text-align: right; font-variant-numeric: tabular-nums; }
 #status.success { background: #dff3ea; color: var(--ok); }
 
 .badge-late { color: var(--danger); font-weight: 600; }
+
+form.repay { display: flex; gap: 6px; }
+form.repay input { width: 110px; }
