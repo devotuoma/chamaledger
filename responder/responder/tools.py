@@ -1,6 +1,5 @@
 """Everything the agent can do to the outside world. There are no other write paths."""
 
-import json
 import time
 from collections import Counter
 
@@ -82,7 +81,7 @@ class Tools:
         response = await self.client.put(
             f"{self.settings.api_url}/api/ops/flags/{name}",
             headers=self._ops_headers,
-            content=json.dumps({"enabled": False}),
+            json={"enabled": False},
         )
         response.raise_for_status()
 
