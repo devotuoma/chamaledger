@@ -21,3 +21,11 @@ test-frontend: ## Run frontend tests
 
 lint: ## Lint the Python code
 	.venv/bin/ruff check backend
+
+.PHONY: up down
+
+up: ## Start the whole system in Docker
+	docker compose up --build
+
+down: ## Stop the system (add -v by hand to erase data)
+	docker compose down
