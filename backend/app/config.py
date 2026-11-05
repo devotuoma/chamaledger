@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     otel_enabled: bool = False
     otel_endpoint: str = "http://otel-collector:4318"
     log_level: str = "INFO"
+    # An empty token turns the whole ops API off.
+    ops_token: str = ""
+    chaos_enabled: bool = False
 
 
 @lru_cache
