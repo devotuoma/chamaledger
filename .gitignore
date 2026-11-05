@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+node_modules/
+*.db
+*.sqlite3
+.env
+incidents/
