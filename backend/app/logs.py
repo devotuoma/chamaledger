@@ -3,7 +3,7 @@
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from opentelemetry import trace
 
@@ -30,7 +30,7 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         trace_id, span_id = current_trace_ids()
         entry = {
-            "timestamp": datetime.fromtimestamp(record.created, timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

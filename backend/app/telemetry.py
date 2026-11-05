@@ -9,6 +9,8 @@ from app.config import Settings
 from app.db import engine
 from app.logs import current_trace_ids, log_event
 
+API_PREFIX = "/api"
+
 # Requests on these routes make up a user journey that has an SLO.
 JOURNEYS = {
     ("POST", "/api/contributions"): "record_contribution",
@@ -38,8 +40,12 @@ def classify(status: int) -> str:
 
 
 def _route_of(request: Request) -> str:
+    """The route template, never the raw path, so that IDs cannot explode log cardinality."""
     route = request.scope.get("route")
-    return getattr(route, "path", "unmatched")
+    if route is None:
+        return "unmatched"
+    # FastAPI reports the path relative to the prefix given to include_router.
+    return f"{API_PREFIX}{route.path}"
 
 
 def _observe(request: Request, status: int, started: float, error: Exception | None) -> None:
@@ -99,8 +105,9 @@ def configure_telemetry(app: FastAPI, settings: Settings, log_handler: logging.H
     from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.logging.handler import LoggingHandler
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+    from opentelemetry.sdk._logs import LoggerProvider
     from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader

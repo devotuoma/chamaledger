@@ -5,7 +5,7 @@ from app.config import get_settings
 from app.errors import register_error_handlers
 from app.logs import configure_logging
 from app.routers import contributions, dashboard, health, loans, members
-from app.telemetry import add_observability_middleware, configure_telemetry
+from app.telemetry import API_PREFIX, add_observability_middleware, configure_telemetry
 
 
 def create_app() -> FastAPI:
@@ -21,11 +21,11 @@ def create_app() -> FastAPI:
         )
     add_observability_middleware(app)
     register_error_handlers(app)
-    app.include_router(health.router, prefix="/api")
-    app.include_router(members.router, prefix="/api")
-    app.include_router(contributions.router, prefix="/api")
-    app.include_router(loans.router, prefix="/api")
-    app.include_router(dashboard.router, prefix="/api")
+    app.include_router(health.router, prefix=API_PREFIX)
+    app.include_router(members.router, prefix=API_PREFIX)
+    app.include_router(contributions.router, prefix=API_PREFIX)
+    app.include_router(loans.router, prefix=API_PREFIX)
+    app.include_router(dashboard.router, prefix=API_PREFIX)
     configure_telemetry(app, settings, log_handler)
     return app
 

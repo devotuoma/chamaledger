@@ -1,5 +1,9 @@
 alembic<2,>=1.13
 fastapi<1,>=0.115
+opentelemetry-exporter-otlp-proto-http<2,>=1.27
+opentelemetry-instrumentation-fastapi>=0.48b0
+opentelemetry-instrumentation-sqlalchemy>=0.48b0
+opentelemetry-sdk<2,>=1.27
 psycopg[binary]<4,>=3.2
 pydantic-settings<3,>=2.4
 sqlalchemy<3,>=2.0.30
