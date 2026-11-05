@@ -1,12 +1,14 @@
 import { createApi } from "./api.js";
 import { renderContributions } from "./views/contributions.js";
 import { renderDashboard } from "./views/dashboard.js";
+import { renderLoans } from "./views/loans.js";
 import { renderMembers } from "./views/members.js";
 
 const ROUTES = {
   dashboard: renderDashboard,
   members: renderMembers,
   contributions: renderContributions,
+  loans: renderLoans,
 };
 
 export function createApp({ root, statusEl, api = createApi(), routes = ROUTES }) {
