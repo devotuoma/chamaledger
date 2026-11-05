@@ -70,3 +70,11 @@ class RepaymentCreate(BaseModel):
     amount: int = Field(gt=0)
     paid_on: date
     reference: str = Field(min_length=3, max_length=64)
+
+
+class DashboardOut(BaseModel):
+    member_count: int
+    total_savings: int
+    loans_outstanding: int
+    par30: float
+    as_of: date
