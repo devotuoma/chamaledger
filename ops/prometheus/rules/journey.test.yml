@@ -1,0 +1,79 @@
+rule_files:
+  - journey.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: A high error share pages, and names the user impact
+    interval: 15s
+    input_series:
+      - series: 'chama_journey_requests_total{journey="record_contribution",outcome="success"}'
+        values: "0+10x40"
+      - series: 'chama_journey_requests_total{journey="record_contribution",outcome="error"}'
+        values: "0+5x40"
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: ContributionsFailing
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: ContributionsFailing
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              journey: record_contribution
+            exp_annotations:
+              summary: "Treasurers cannot record contributions"
+              description: "33.33% of contribution requests are failing, against an SLO allowing 1%. Payments may go unrecorded."
+              runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-failing.md"
+
+  - name: A low error share inside the budget does not page
+    interval: 15s
+    input_series:
+      - series: 'chama_journey_requests_total{journey="record_contribution",outcome="success"}'
+        values: "0+100x40"
+      - series: 'chama_journey_requests_total{journey="record_contribution",outcome="error"}'
+        values: "0+1x40"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ContributionsFailing
+        exp_alerts: []
+
+  - name: Slow requests page
+    interval: 15s
+    input_series:
+      - series: 'chama_journey_duration_seconds_bucket{journey="record_contribution",le="1"}'
+        values: "0x40"
+      - series: 'chama_journey_duration_seconds_bucket{journey="record_contribution",le="2"}'
+        values: "0+10x40"
+      - series: 'chama_journey_duration_seconds_bucket{journey="record_contribution",le="+Inf"}'
+        values: "0+10x40"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ContributionsSlow
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              journey: record_contribution
+            exp_annotations:
+              summary: "Treasurers are waiting too long to record contributions"
+              description: "95% of contributions finish within 2s, against a 1 second objective. Slow saves lead to repeat submissions and abandoned entries."
+              runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-slow.md"
+
+  - name: A failing probe pages, even with no error metrics from the API
+    interval: 15s
+    input_series:
+      - series: 'chama_probe_success{job="responder",instance="responder:8100"}'
+        values: "0x20"
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: ContributionsUnavailable
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              journey: record_contribution
+              job: responder
+              instance: "responder:8100"
+            exp_annotations:
+              summary: "The contribution journey fails from the outside"
+              description: "A synthetic contribution has been failing for over a minute. This also covers a full outage, when the API cannot report its own errors."
+              runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-unavailable.md"
