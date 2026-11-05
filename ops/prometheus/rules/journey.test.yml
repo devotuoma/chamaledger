@@ -56,7 +56,7 @@ tests:
               journey: record_contribution
             exp_annotations:
               summary: "Treasurers are waiting too long to record contributions"
-              description: "95% of contributions finish within 2s, against a 1 second objective. Slow saves lead to repeat submissions and abandoned entries."
+              description: "95% of contributions finish within 1.95s, against a 1 second objective. Slow saves lead to repeat submissions and abandoned entries."
               runbook_url: "https://github.com/devotuoma/chamaledger/blob/main/docs/runbooks/contributions-slow.md"
 
   - name: A failing probe pages, even with no error metrics from the API
