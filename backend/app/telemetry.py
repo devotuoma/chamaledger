@@ -14,6 +14,7 @@ API_PREFIX = "/api"
 # Requests on these routes make up a user journey that has an SLO.
 JOURNEYS = {
     ("POST", "/api/contributions"): "record_contribution",
+    ("POST", "/api/ops/probe"): "record_contribution",
 }
 DURATION_BUCKETS = [0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0]
 
