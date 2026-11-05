@@ -1,0 +1,97 @@
+# Reusable: deploys one commit's images to one environment, and restores the last
+# good release if the new one fails its smoke test.
+name: Deploy (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      sha:
+        type: string
+        required: true
+      smoke_args:
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/chamaledger-api
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/chamaledger-frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency: deploy-${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check that the environment is configured
+        id: config
+        env:
+          API_HOOK: ${{ secrets.API_DEPLOY_HOOK }}
+          FRONTEND_HOOK: ${{ secrets.FRONTEND_DEPLOY_HOOK }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$API_HOOK" ] || [ -z "$FRONTEND_HOOK" ] || [ -z "$APP_URL" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::${{ inputs.environment }} is not configured, so nothing was deployed. See docs/deployment.md."
+            echo "**Not deployed:** \`${{ inputs.environment }}\` has no hosting secrets yet." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Remember the release to fall back to
+        if: steps.config.outputs.configured == 'true'
+        id: previous
+        run: |
+          tag="$API_IMAGE:${{ inputs.environment }}-current"
+          if docker pull "$tag" 2>/dev/null; then
+            sha=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$tag")
+            echo "sha=$sha" >> "$GITHUB_OUTPUT"
+            echo "Falling back to $sha if needed"
+          else
+            echo "No previous release: this is the first deploy"
+          fi
+
+      - name: Deploy
+        if: steps.config.outputs.configured == 'true'
+        env:
+          API_HOOK: ${{ secrets.API_DEPLOY_HOOK }}
+          FRONTEND_HOOK: ${{ secrets.FRONTEND_DEPLOY_HOOK }}
+        run: scripts/deploy.sh "${{ inputs.sha }}"
+
+      - name: Smoke test the new release
+        if: steps.config.outputs.configured == 'true'
+        id: smoke
+        run: >-
+          python3 scripts/smoke.py "${{ vars.APP_URL }}"
+          --expect-version "${{ inputs.sha }}" ${{ inputs.smoke_args }}
+
+      - name: Roll back automatically
+        if: failure() && steps.smoke.conclusion == 'failure' && steps.previous.outputs.sha != ''
+        env:
+          API_HOOK: ${{ secrets.API_DEPLOY_HOOK }}
+          FRONTEND_HOOK: ${{ secrets.FRONTEND_DEPLOY_HOOK }}
+        run: |
+          echo "**Rolled back** to \`${{ steps.previous.outputs.sha }}\`: the new release failed its smoke test." >> "$GITHUB_STEP_SUMMARY"
+          scripts/deploy.sh "${{ steps.previous.outputs.sha }}"
+          python3 scripts/smoke.py "${{ vars.APP_URL }}" --read-only --expect-version "${{ steps.previous.outputs.sha }}"
+
+      - name: Mark this release as the last good one
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          for image in "$API_IMAGE" "$FRONTEND_IMAGE"; do
+            docker buildx imagetools create -t "$image:${{ inputs.environment }}-current" "$image:${{ inputs.sha }}"
+          done
+          echo "**Deployed** \`${{ inputs.sha }}\` to ${{ inputs.environment }}: ${{ vars.APP_URL }}" >> "$GITHUB_STEP_SUMMARY"
