@@ -40,6 +40,25 @@ services:
       api:
         condition: service_healthy
 
+  responder:
+    build: ./responder
+    environment:
+      API_URL: http://api:8000
+      PROMETHEUS_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      OPS_TOKEN: ${OPS_TOKEN:-local-ops-token}
+      RESPONDER_TOKEN: ${RESPONDER_TOKEN:-local-responder-token}
+      LLM_BASE_URL: ${RESPONDER_LLM_BASE_URL:-}
+      LLM_API_KEY: ${RESPONDER_LLM_API_KEY:-}
+      LLM_MODEL: ${RESPONDER_LLM_MODEL:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_REPOSITORY: ${GITHUB_REPOSITORY:-}
+    ports:
+      - "8100:8100"
+    depends_on:
+      api:
+        condition: service_healthy
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.115.1
     command: ["--config=/etc/otelcol/config.yaml"]
