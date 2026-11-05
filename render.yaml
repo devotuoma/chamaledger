@@ -1,0 +1,48 @@
+# Render blueprint. Values marked sync: false are asked for once, in the dashboard.
+# Images are published to GHCR by the CD workflow, which also triggers each deploy.
+services:
+  - type: web
+    name: chamaledger-api-dev
+    runtime: image
+    plan: free
+    image:
+      url: ghcr.io/devotuoma/chamaledger-api:BOOTSTRAP_SHA
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - { key: ENVIRONMENT, value: dev }
+      - { key: SEED_DEMO, value: "true" }
+      - { key: DATABASE_URL, sync: false }
+
+  - type: web
+    name: chamaledger-web-dev
+    runtime: image
+    plan: free
+    image:
+      url: ghcr.io/devotuoma/chamaledger-frontend:BOOTSTRAP_SHA
+    autoDeploy: false
+    envVars:
+      - { key: API_URL, sync: false }
+
+  - type: web
+    name: chamaledger-api-prod
+    runtime: image
+    plan: free
+    image:
+      url: ghcr.io/devotuoma/chamaledger-api:BOOTSTRAP_SHA
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - { key: ENVIRONMENT, value: production }
+      - { key: SEED_DEMO, value: "true" }
+      - { key: DATABASE_URL, sync: false }
+
+  - type: web
+    name: chamaledger-web-prod
+    runtime: image
+    plan: free
+    image:
+      url: ghcr.io/devotuoma/chamaledger-frontend:BOOTSTRAP_SHA
+    autoDeploy: false
+    envVars:
+      - { key: API_URL, sync: false }
