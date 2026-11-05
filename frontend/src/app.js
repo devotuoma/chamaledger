@@ -1,8 +1,13 @@
 import { createApi } from "./api.js";
+import { renderContributions } from "./views/contributions.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderMembers } from "./views/members.js";
 
-const ROUTES = { dashboard: renderDashboard, members: renderMembers };
+const ROUTES = {
+  dashboard: renderDashboard,
+  members: renderMembers,
+  contributions: renderContributions,
+};
 
 export function createApp({ root, statusEl, api = createApi(), routes = ROUTES }) {
   function notify(message, kind) {
