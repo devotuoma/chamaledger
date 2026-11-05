@@ -6,7 +6,7 @@ services:
     runtime: image
     plan: free
     image:
-      url: ghcr.io/devotuoma/chamaledger-api:BOOTSTRAP_SHA
+      url: ghcr.io/devotuoma/chamaledger-api:latest
     healthCheckPath: /api/health
     autoDeploy: false
     envVars:
@@ -19,7 +19,7 @@ services:
     runtime: image
     plan: free
     image:
-      url: ghcr.io/devotuoma/chamaledger-frontend:BOOTSTRAP_SHA
+      url: ghcr.io/devotuoma/chamaledger-frontend:latest
     autoDeploy: false
     envVars:
       - { key: API_URL, sync: false }
@@ -29,7 +29,7 @@ services:
     runtime: image
     plan: free
     image:
-      url: ghcr.io/devotuoma/chamaledger-api:BOOTSTRAP_SHA
+      url: ghcr.io/devotuoma/chamaledger-api:latest
     healthCheckPath: /api/health
     autoDeploy: false
     envVars:
@@ -42,7 +42,7 @@ services:
     runtime: image
     plan: free
     image:
-      url: ghcr.io/devotuoma/chamaledger-frontend:BOOTSTRAP_SHA
+      url: ghcr.io/devotuoma/chamaledger-frontend:latest
     autoDeploy: false
     envVars:
       - { key: API_URL, sync: false }
