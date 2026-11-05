@@ -167,5 +167,3 @@ def test_resolved_notifications_do_not_start_an_incident(settings):
 def test_metrics_expose_the_probe_result(settings):
     with TestClient(create_app(settings)) as client:
         assert "chama_probe_success 1" in client.get("/metrics").text
-
-

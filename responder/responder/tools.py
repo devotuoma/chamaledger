@@ -10,7 +10,7 @@ from responder.config import Settings
 
 JOURNEY = 'journey="record_contribution"'
 ERROR_RATIO_QUERY = (
-    f'sum(rate(chama_journey_requests_total{{{JOURNEY},outcome="error"}}[1m])) or vector(0)'
+    f'(sum(rate(chama_journey_requests_total{{{JOURNEY},outcome="error"}}[1m])) or vector(0))'
     f" / sum(rate(chama_journey_requests_total{{{JOURNEY}}}[1m]))"
 )
 P95_QUERY = (

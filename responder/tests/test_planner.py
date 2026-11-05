@@ -9,7 +9,9 @@ from responder.planner import enforce_allowlist, make_plan, runbook_plan
 
 
 def evidence(alert="ContributionsFailing", faults=(), errors=None):
-    return Evidence(alert_name=alert, enabled_faults=list(faults), error_types=Counter(errors or {}))
+    return Evidence(
+        alert_name=alert, enabled_faults=list(faults), error_types=Counter(errors or {})
+    )
 
 
 def test_runbook_disables_the_fault_that_explains_the_alert():
@@ -30,17 +32,17 @@ def test_runbook_escalates_and_names_what_it_saw_when_the_cause_is_unknown():
 
 
 def test_allowlist_refuses_unknown_actions():
-    plan = Plan(action="drop_database", target="members", planner="llm")
+    plan = Plan(action="drop_database", target="members", reason="", planner="llm")
     assert enforce_allowlist(plan, evidence()).action == ESCALATE
 
 
 def test_allowlist_refuses_a_fault_that_is_not_enabled():
-    plan = Plan(action=DISABLE_FAULT, target="contribution_write_failure", planner="llm")
+    plan = Plan(action=DISABLE_FAULT, target="contribution_write_failure", reason="", planner="llm")
     assert enforce_allowlist(plan, evidence()).action == ESCALATE
 
 
 def test_allowlist_refuses_an_enabled_but_unknown_flag():
-    plan = Plan(action=DISABLE_FAULT, target="something_else", planner="llm")
+    plan = Plan(action=DISABLE_FAULT, target="something_else", reason="", planner="llm")
     assert enforce_allowlist(plan, evidence(faults=["something_else"])).action == ESCALATE
 
 

@@ -57,10 +57,14 @@ class Agent:
         def set_failures(result):
             evidence.error_types, evidence.sample_trace_ids = result
 
-        await gather("error ratio", self.tools.error_ratio, lambda v: setattr(evidence, "error_ratio", v))
+        await gather(
+            "error ratio", self.tools.error_ratio, lambda v: setattr(evidence, "error_ratio", v)
+        )
         await gather("p95", self.tools.p95_seconds, lambda v: setattr(evidence, "p95_seconds", v))
         await gather("logs", self.tools.recent_failures, set_failures)
-        await gather("flags", self.tools.enabled_faults, lambda v: setattr(evidence, "enabled_faults", v))
+        await gather(
+            "flags", self.tools.enabled_faults, lambda v: setattr(evidence, "enabled_faults", v)
+        )
         return evidence
 
     async def act(self, plan: Plan) -> None:
@@ -100,7 +104,9 @@ class Agent:
 
             plan = await make_plan(self.settings, self.client, evidence)
             incident.plan = vars(plan)
-            incident.note(f"Plan from {plan.planner}: {plan.action} {plan.target or ''}. {plan.reason}")
+            incident.note(
+                f"Plan from {plan.planner}: {plan.action} {plan.target or ''}. {plan.reason}"
+            )
 
             if plan.action != DISABLE_FAULT:
                 self._escalate(incident, "Needs a human")

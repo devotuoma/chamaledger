@@ -11,7 +11,9 @@ def render_markdown(incident: Incident) -> str:
     plan = incident.plan or {}
     evidence = incident.evidence or {}
     timeline = "\n".join(f"- `{e['at']}` {e['message']}" for e in incident.timeline)
-    traces = "\n".join(f"- `{trace_id}`" for trace_id in incident.sample_trace_ids) or "- none found"
+    traces = (
+        "\n".join(f"- `{trace_id}`" for trace_id in incident.sample_trace_ids) or "- none found"
+    )
     return f"""# Incident {incident.id}: {incident.alert_name}
 
 | | |

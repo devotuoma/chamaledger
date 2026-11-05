@@ -65,7 +65,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=401, detail="Invalid token")
 
     @app.post("/alerts", dependencies=[Depends(require_token)])
-    async def receive_alerts(webhook: AlertmanagerWebhook, request: Request) -> dict[str, list[str]]:
+    async def receive_alerts(
+        webhook: AlertmanagerWebhook, request: Request
+    ) -> dict[str, list[str]]:
         agent: Agent = request.app.state.agent
         started = []
         for alert in webhook.alerts:
@@ -97,6 +99,3 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     return app
-
-
-app = create_app
