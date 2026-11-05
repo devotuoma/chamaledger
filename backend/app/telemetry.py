@@ -151,6 +151,10 @@ def configure_telemetry(app: FastAPI, settings: Settings, log_handler: logging.H
     for log_filter in log_handler.filters:
         otel_handler.addFilter(log_filter)
     logging.getLogger().addHandler(otel_handler)
+    # The exporter's own failures must not be exported, or they feed back into themselves.
+    exporter_logger = logging.getLogger("opentelemetry")
+    exporter_logger.propagate = False
+    exporter_logger.addHandler(log_handler)
 
     SQLAlchemyInstrumentor().instrument(engine=engine)
     FastAPIInstrumentor.instrument_app(app, excluded_urls="api/health")
