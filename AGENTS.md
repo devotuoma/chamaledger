@@ -15,6 +15,8 @@ Read this first, then only the document your task needs.
 | Deploying and rolling back | [docs/deployment.md](docs/deployment.md) |
 | Signals, dashboards and alerts | [docs/observability.md](docs/observability.md) |
 | Responding to an alert | [docs/runbooks/](docs/runbooks/) |
+| How the on-call agent works | [responder/README.md](responder/README.md) |
+| Proof the alert-to-fix loop works | [docs/evidence/game-day.md](docs/evidence/game-day.md) |
 
 ## Rules that always apply
 
