@@ -42,7 +42,7 @@ def current_trace_ids() -> tuple[str | None, str | None]:
 
 
 def log_event(event: str, level: int = logging.INFO, **fields: object) -> None:
-    safe = {key: value for key, value in fields.items() if key in ALLOWED_FIELDS}
+    safe = {k: v for k, v in fields.items() if k in ALLOWED_FIELDS and v is not None}
     logger.log(level, event, extra={"event": event, **safe})
 
 
