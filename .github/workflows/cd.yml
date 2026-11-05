@@ -34,12 +34,14 @@ jobs:
         run: |
           for name in api frontend; do
             context=backend; [ "$name" = frontend ] && context=frontend
-            image="ghcr.io/$OWNER/chamaledger-$name:$SHA"
-            docker build "$context" --tag "$image" \
+            repository="ghcr.io/$OWNER/chamaledger-$name"
+            image="$repository:$SHA"
+            docker build "$context" --tag "$image" --tag "$repository:latest" \
               --build-arg "SERVICE_VERSION=$SHA" \
               --label "org.opencontainers.image.revision=$SHA" \
               --label "org.opencontainers.image.source=$SOURCE"
-            docker push "$image"
+            # "latest" exists only so the host's blueprint has an image to start from.
+            docker push --all-tags "$repository"
           done
 
   deploy-dev:
