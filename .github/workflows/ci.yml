@@ -56,6 +56,19 @@ jobs:
       - run: npm test
         working-directory: frontend
 
+  alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit test the alert rules
+        run: >-
+          docker run --rm -v "$PWD/ops/prometheus/rules:/rules:ro" --entrypoint promtool
+          prom/prometheus:v2.55.1 test rules /rules/journey.test.yml
+      - name: Validate the Alertmanager config
+        run: >-
+          docker run --rm -v "$PWD/ops/alertmanager:/config:ro" --entrypoint amtool
+          prom/alertmanager:v0.27.0 check-config /config/alertmanager.yml
+
   stack:
     runs-on: ubuntu-latest
     steps:
