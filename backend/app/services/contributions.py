@@ -6,6 +6,7 @@ from app.errors import Conflict
 from app.models import Contribution
 from app.schemas import ContributionCreate
 from app.services.members import get_member
+from app.telemetry import journey_span
 
 
 def _find_by_reference(session: Session, reference: str) -> Contribution | None:
@@ -25,6 +26,13 @@ def _replay(existing: Contribution, data: ContributionCreate) -> Contribution:
 
 def record_contribution(session: Session, data: ContributionCreate) -> tuple[Contribution, bool]:
     """Returns the contribution and whether this call created it."""
+    with journey_span("record_contribution") as span:
+        contribution, created = _record(session, data)
+        span.set_attribute("chama.contribution.created", created)
+        return contribution, created
+
+
+def _record(session: Session, data: ContributionCreate) -> tuple[Contribution, bool]:
     existing = _find_by_reference(session, data.reference)
     if existing is not None:
         return _replay(existing, data), False
