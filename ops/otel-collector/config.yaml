@@ -26,6 +26,7 @@ processors:
       - context: span
         statements:
           - replace_all_patterns(attributes, "value", "\\+[1-9][0-9]{7,14}", "[REDACTED]")
+          - replace_pattern(status.message, "\\+[1-9][0-9]{7,14}", "[REDACTED]")
       - context: spanevent
         statements:
           - replace_all_patterns(attributes, "value", "\\+[1-9][0-9]{7,14}", "[REDACTED]")
