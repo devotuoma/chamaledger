@@ -1,0 +1,51 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    # Only for a passing CI run of a push to main, so failing commits are never released.
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish images tagged with the commit
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          OWNER: ${{ github.repository_owner }}
+          SOURCE: https://github.com/${{ github.repository }}
+        run: |
+          for name in api frontend; do
+            context=backend; [ "$name" = frontend ] && context=frontend
+            image="ghcr.io/$OWNER/chamaledger-$name:$SHA"
+            docker build "$context" --tag "$image" \
+              --build-arg "SERVICE_VERSION=$SHA" \
+              --label "org.opencontainers.image.revision=$SHA" \
+              --label "org.opencontainers.image.source=$SOURCE"
+            docker push "$image"
+          done
+
+  deploy-dev:
+    needs: publish
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: dev
+      sha: ${{ needs.publish.outputs.sha }}
+    secrets: inherit
