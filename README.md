@@ -1,4 +1,4 @@
-# ChamaLedger
+# ChamaLedge
 
 [![CI](https://github.com/devotuoma/chamaledger/actions/workflows/ci.yml/badge.svg)](https://github.com/devotuoma/chamaledger/actions/workflows/ci.yml)
 [![Game day](https://github.com/devotuoma/chamaledger/actions/workflows/game-day.yml/badge.svg)](https://github.com/devotuoma/chamaledger/actions/workflows/game-day.yml)
